@@ -14,12 +14,18 @@ my $install_dir = '/opt/warsow/';
 my $personal_dir = $ENV{'HOME'} . '/.warsow-1.0/';
 my $basemod = 'basewsw';
 my $pure_only;
+my $strip;
+my $delete;
+my $full_delete;
 
 GetOptions(
     "install-dir=s" => \$install_dir,
     "personal-dir=s" => \$personal_dir,
     "basemod=s" => \$basemod,
-    "pure-only" => \$pure_only
+    "pure-only" => \$pure_only,
+    "strip" => \$strip,
+    "delete" => \$delete,
+    "full-delete" => \$full_delete
 );
 
 my $dir;
@@ -103,10 +109,10 @@ sub encounter_file {
     $file =~ s/^$dir//;
     if ($file . '/' ne $dir && !-d $File::Find::name) {
         if (is_pak($file)) {
-            if (!defined $pure_only || $file =~ /pure\.[^\.]*$/) {
+            if (!$pure_only || $file =~ /pure\.[^\.]*$/) {
                 analyze_pk3($file);
             }
-        } elsif (!defined $pure_only) {
+        } elsif (!$pure_only) {
             push @{$files->{''}}, $file;
         }
     }
@@ -150,11 +156,28 @@ sub check {
                     if ($file eq $original_file) {
                         if (md5(read_file($dir . $pk3, $file)) ne md5(read_file($original_dir . $original_pk3, $original_file))) {
                             print "$file from $dir$pk3 overwrites $original_file from $original_dir$original_pk3\n";
+                            modify($dir . $pk3, $file);
                             next FILE;
                         }
                     }
                 }
             }
         }
+    }
+}
+
+sub modify {
+    my($base, $file) = @_;
+    if (is_pak($base)) {
+        if ($strip) {
+            my $zip = Archive::Zip->new();
+            $zip->read($base);
+            $zip->removeMember($file);
+            $zip->overwrite();
+        } elsif ($full_delete) {
+            unlink $base;
+        }
+    } elsif ($delete) {
+        unlink $base . $file;
     }
 }
