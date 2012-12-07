@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use File::Find;
+use Digest::MD5 'md5';
 
 use Archive::Zip;
 
@@ -55,11 +56,16 @@ sub analyze {
     find(\&encounter_file, $dir);
 }
 
+sub is_pak {
+    my($file) = @_;
+    return $file =~ /\.(pk3|pak|pk2)$/;
+}
+
 sub encounter_file {
     my $file = $File::Find::name;
     $file =~ s/^$dir//;
     if ($file . '/' ne $dir && !-d $File::Find::name) {
-        if ($file =~ /\.(pk3|pak|pk2)$/) {
+        if (is_pak($file)) {
             analyze_pk3($file);
         } else {
             push @{$files->{''}}, $file;
@@ -79,14 +85,31 @@ sub files {
     return grep !/\/$/, @total;
 }
 
+sub read_file {
+    my($base, $file) = @_;
+    my $result;
+    if (is_pak($base)) {
+        my $zip = Archive::Zip->new();
+        $zip->read($base);
+        $result = $zip->contents($file);
+    } else {
+        my $fh;
+        local $/;
+        open $fh, '<', $base . $file;
+        $result = <$fh>;
+        close $fh;
+    }
+    return $result;
+}
+
 sub check {
     my($files) = @_;
     for my $pk3(keys %{$files}) {
         FILE: for my $file(@{$files->{$pk3}}) {
             for my $original_pk3(keys %{$original}) {
-                if ($pk3 ne $original_pk3) {
-                    for my $original_file(@{$original->{$original_pk3}}) {
-                        if ($file eq $original_file) {
+                for my $original_file(@{$original->{$original_pk3}}) {
+                    if ($file eq $original_file) {
+                        if (md5(read_file($dir . $pk3, $file)) ne md5(read_file($original_dir . $original_pk3, $original_file))) {
                             print "$file from $dir$pk3 overwrites $original_file from $original_dir$original_pk3\n";
                             next FILE;
                         }
