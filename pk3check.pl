@@ -32,6 +32,9 @@ GetOptions(
     "rename-suffix=s" => \$rename_suffix
 );
 
+$install_dir =~ s/([^\/])$/$1\//;
+$personal_dir =~ s/([^\/])$/$1\//;
+
 my $dir;
 my $files;
 
@@ -160,7 +163,7 @@ sub check {
                 for my $original_file(@{$original->{$original_pk3}}) {
                     if ($file eq $original_file) {
                         if (md5(read_file($dir . $pk3, $file)) ne md5(read_file($original_dir . $original_pk3, $original_file))) {
-                            print "$file from $dir$pk3 overwrites $original_file from $original_dir$original_pk3\n";
+                            print "$file from $dir$pk3 overwrites the one from $original_dir$original_pk3\n";
                             modify($dir . $pk3, $file);
                             next FILE;
                         }
