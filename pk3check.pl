@@ -52,8 +52,30 @@ sub clean {
     };
 }
 
+sub exists_after {
+    my($base, $file) = @_;
+    for my $base2(keys %{$files}) {
+        my @filtered;
+        for my $file2(@{$files->{$base2}}) {
+            if ($file eq $file2) {
+                return $base ne '' && ($base2 gt $base || $base2 eq '');
+            }
+        }
+    }
+    return 0;
+}
+
 sub analyze {
     find(\&encounter_file, $dir);
+    for my $base(keys %{$files}) {
+        my @filtered;
+        for my $file(@{$files->{$base}}) {
+            if (!exists_after($base, $file)) {
+                push @filtered, $file;
+            }
+        }
+        $files->{$base} = \@filtered;
+    }
 }
 
 sub is_pak {
