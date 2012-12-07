@@ -3,30 +3,38 @@
 use strict;
 use warnings;
 
+use autodie;
+use Getopt::Long;
 use File::Find;
 use Digest::MD5 'md5';
 
 use Archive::Zip;
 
-my $INSTALL_DIR = '/opt/warsow/';
-my $PERSONAL_DIR = $ENV{'HOME'} . '/.warsow-1.0/';
-my $BASEMOD = 'basewsw';
+my $install_dir = '/opt/warsow/';
+my $personal_dir = $ENV{'HOME'} . '/.warsow-1.0/';
+my $basemod = 'basewsw';
+
+GetOptions(
+    "install-dir=s" => \$install_dir,
+    "personal-dir=s" => \$personal_dir,
+    "basemod=s" => \$basemod
+);
 
 my $dir;
 my $files;
 
 my $original;
-my $original_dir = $INSTALL_DIR . $BASEMOD . '/';
+my $original_dir = $install_dir . $basemod . '/';
 
 $dir = $original_dir;
 clean();
 analyze();
 remove_duplicates();
 $original = $files;
-$dir = $PERSONAL_DIR . $BASEMOD . '/';
-my @mods = subdirs($PERSONAL_DIR);
+$dir = $personal_dir . $basemod . '/';
+my @mods = subdirs($personal_dir);
 for my $mod(@mods) {
-    $dir = $PERSONAL_DIR . $mod . '/';
+    $dir = $personal_dir . $mod . '/';
     clean();
     analyze();
     check($files);
