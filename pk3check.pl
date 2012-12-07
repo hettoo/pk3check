@@ -13,11 +13,13 @@ use Archive::Zip;
 my $install_dir = '/opt/warsow/';
 my $personal_dir = $ENV{'HOME'} . '/.warsow-1.0/';
 my $basemod = 'basewsw';
+my $pure_only;
 
 GetOptions(
     "install-dir=s" => \$install_dir,
     "personal-dir=s" => \$personal_dir,
-    "basemod=s" => \$basemod
+    "basemod=s" => \$basemod,
+    "pure-only" => \$pure_only
 );
 
 my $dir;
@@ -31,6 +33,7 @@ clean();
 analyze();
 remove_duplicates();
 $original = $files;
+undef $pure_only;
 $dir = $personal_dir . $basemod . '/';
 my @mods = subdirs($personal_dir);
 for my $mod(@mods) {
@@ -100,8 +103,10 @@ sub encounter_file {
     $file =~ s/^$dir//;
     if ($file . '/' ne $dir && !-d $File::Find::name) {
         if (is_pak($file)) {
-            analyze_pk3($file);
-        } else {
+            if (!defined $pure_only || $file =~ /pure\.[^\.]*$/) {
+                analyze_pk3($file);
+            }
+        } elsif (!defined $pure_only) {
             push @{$files->{''}}, $file;
         }
     }
