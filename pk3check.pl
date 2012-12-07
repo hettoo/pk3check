@@ -14,18 +14,22 @@ my $install_dir = '/opt/warsow/';
 my $personal_dir = $ENV{'HOME'} . '/.warsow-1.0/';
 my $basemod = 'basewsw';
 my $pure_only;
+my $packed_only;
 my $strip;
 my $delete;
 my $full_delete;
+my $rename_suffix = '_fix';
 
 GetOptions(
     "install-dir=s" => \$install_dir,
     "personal-dir=s" => \$personal_dir,
     "basemod=s" => \$basemod,
     "pure-only" => \$pure_only,
+    "packed-only" => \$packed_only,
     "strip" => \$strip,
     "delete" => \$delete,
-    "full-delete" => \$full_delete
+    "full-delete" => \$full_delete,
+    "rename-suffix=s" => \$rename_suffix
 );
 
 my $dir;
@@ -40,6 +44,7 @@ analyze();
 remove_duplicates();
 $original = $files;
 undef $pure_only;
+undef $packed_only;
 $dir = $personal_dir . $basemod . '/';
 my @mods = subdirs($personal_dir);
 for my $mod(@mods) {
@@ -112,7 +117,7 @@ sub encounter_file {
             if (!$pure_only || $file =~ /pure\.[^\.]*$/) {
                 analyze_pk3($file);
             }
-        } elsif (!$pure_only) {
+        } elsif (!$pure_only && !$packed_only) {
             push @{$files->{''}}, $file;
         }
     }
@@ -173,11 +178,16 @@ sub modify {
             my $zip = Archive::Zip->new();
             $zip->read($base);
             $zip->removeMember($file);
-            $zip->overwrite();
+            my $new_name = $base;
+            $new_name =~ s/\.([^\.]*)$/$rename_suffix.$1/;
+            $zip->overwriteAs($new_name);
+            if ($base ne $new_name) {
+                unlink $base;
+            }
         } elsif ($full_delete) {
             unlink $base;
         }
-    } elsif ($delete) {
+    } elsif ($delete || $full_delete) {
         unlink $base . $file;
     }
 }
