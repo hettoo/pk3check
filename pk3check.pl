@@ -20,14 +20,14 @@ my $original_dir = $INSTALL_DIR . $BASEMOD . '/';
 
 $dir = $original_dir;
 clean();
-analyze();
+analyze(1);
 $original = $files;
 $dir = $PERSONAL_DIR . $BASEMOD . '/';
 my @mods = subdirs($PERSONAL_DIR);
 for my $mod(@mods) {
     $dir = $PERSONAL_DIR . $mod . '/';
     clean();
-    analyze();
+    analyze(0);
     check($files);
 }
 exit;
@@ -66,15 +66,18 @@ sub exists_after {
 }
 
 sub analyze {
+    my($check_precedence) = @_;
     find(\&encounter_file, $dir);
-    for my $base(keys %{$files}) {
-        my @filtered;
-        for my $file(@{$files->{$base}}) {
-            if (!exists_after($base, $file)) {
-                push @filtered, $file;
+    if ($check_precedence) {
+        for my $base(keys %{$files}) {
+            my @filtered;
+            for my $file(@{$files->{$base}}) {
+                if (!exists_after($base, $file)) {
+                    push @filtered, $file;
+                }
             }
+            $files->{$base} = \@filtered;
         }
-        $files->{$base} = \@filtered;
     }
 }
 
