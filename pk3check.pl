@@ -153,6 +153,9 @@ sub read_file {
     my($base, $file) = @_;
     my $result;
     if (is_pak($base)) {
+        if (defined $renamed{$base}) {
+            $base = $renamed{$base};
+        }
         my $zip = Archive::Zip->new();
         $zip->read($base);
         $result = $zip->contents($file);
