@@ -37,6 +37,7 @@ $personal_dir =~ s/([^\/])$/$1\//;
 
 my $dir;
 my $files;
+my %renamed;
 
 my $original;
 my $original_dir = $install_dir . $basemod . '/';
@@ -179,13 +180,20 @@ sub modify {
     if (is_pak($base)) {
         if ($strip) {
             my $zip = Archive::Zip->new();
+            my $is_renamed = defined $renamed{$base};
+            if ($is_renamed) {
+                $base = $renamed{$base};
+            }
             $zip->read($base);
             $zip->removeMember($file);
-            my $new_name = $base;
-            $new_name =~ s/\.([^\.]*)$/$rename_suffix.$1/;
-            $zip->overwriteAs($new_name);
-            if ($base ne $new_name) {
+            if ($is_renamed) {
+                $zip->overwrite();
+            } else {
+                my $new_name = $base;
+                $new_name =~ s/(\.[^\.]*)$/$rename_suffix$1/;
+                $zip->overwriteAs($new_name);
                 unlink $base;
+                $renamed{$base} = $new_name;
             }
         } elsif ($full_delete) {
             unlink $base;
