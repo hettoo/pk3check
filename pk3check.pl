@@ -6,31 +6,34 @@ use warnings;
 use autodie;
 use Getopt::Long;
 use File::Find;
+use File::Copy;
 use Digest::MD5 'md5';
 
 use Archive::Zip;
 
 my $install_dir = '/opt/warsow/';
 my $personal_dir = $ENV{'HOME'} . '/.warsow-1.0/';
-my $basemod = 'basewsw';
+my $coremod = 'basewsw';
 my $pure_only;
 my $packed_only;
 my $strip;
 my $delete;
 my $full_delete;
 my $rename_suffix = '_fix';
+my $backup;
 
 GetOptions(
     "install-dir=s" => \$install_dir,
     "personal-dir=s" => \$personal_dir,
-    "basemod=s" => \$basemod,
+    "coremod=s" => \$coremod,
     "pure-only" => \$pure_only,
     "packed-only" => \$packed_only,
     "strip" => \$strip,
     "delete" => \$delete,
     "full-delete" => \$full_delete,
-    "rename-suffix=s" => \$rename_suffix
-);
+    "rename-suffix=s" => \$rename_suffix,
+    "backup=s" => \$backup
+) or exit 1;
 
 $install_dir =~ s/([^\/])$/$1\//;
 $personal_dir =~ s/([^\/])$/$1\//;
@@ -40,7 +43,7 @@ my $files;
 my %renamed;
 
 my $original;
-my $original_dir = $install_dir . $basemod . '/';
+my $original_dir = $install_dir . $coremod . '/';
 
 $dir = $original_dir;
 clean();
@@ -49,7 +52,7 @@ remove_duplicates();
 $original = $files;
 undef $pure_only;
 undef $packed_only;
-$dir = $personal_dir . $basemod . '/';
+$dir = $personal_dir . $coremod . '/';
 my @mods = subdirs($personal_dir);
 for my $mod(@mods) {
     $dir = $personal_dir . $mod . '/';
@@ -192,13 +195,25 @@ sub modify {
                 my $new_name = $base;
                 $new_name =~ s/(\.[^\.]*)$/$rename_suffix$1/;
                 $zip->overwriteAs($new_name);
-                unlink $base;
+                if (defined $backup) {
+                    move($base, $base . $backup);
+                } else {
+                    unlink $base;
+                }
                 $renamed{$base} = $new_name;
             }
         } elsif ($full_delete) {
-            unlink $base;
+            if (defined $backup) {
+                move($base, $base . $backup);
+            } else {
+                unlink $base;
+            }
         }
     } elsif ($delete || $full_delete) {
-        unlink $base . $file;
+        if (defined $backup) {
+            move($base . $file, $base . $file . $backup);
+        } else {
+            unlink $base . $file;
+        }
     }
 }

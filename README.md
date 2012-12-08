@@ -9,7 +9,7 @@ The script requires Archive::Zip which can be installed from cpan.
 
 * install-dir: path to the game's installation directory.
 * personal-dir: path to your personal game directory.
-* basemod: the game's default mod name.
+* coremod: the game's default mod name.
 * pure-only: only check files from pure core pk3 files.
 * packed-only: only check files from core pk3 files.
 * strip: strip wrong files from personal pk3 files.
@@ -17,3 +17,4 @@ The script requires Archive::Zip which can be installed from cpan.
   the old file will still be deleted though).
 * delete: delete wrong files.
 * full-delete: delete wrong files and pk3 files containing wrong files.
+* backup: backup changed or removed files by appending this suffix.
