@@ -18,3 +18,4 @@ The script requires Archive::Zip which can be installed from cpan.
 * delete: delete wrong files.
 * full-delete: delete wrong files and pk3 files containing wrong files.
 * backup: backup changed or removed files by appending this suffix.
+* mod: check a specific mod rather than all of them.

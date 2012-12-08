@@ -21,6 +21,7 @@ my $delete;
 my $full_delete;
 my $rename_suffix = '_fix';
 my $backup;
+my $specific_mod;
 
 GetOptions(
     "install-dir=s" => \$install_dir,
@@ -32,7 +33,8 @@ GetOptions(
     "delete" => \$delete,
     "full-delete" => \$full_delete,
     "rename-suffix=s" => \$rename_suffix,
-    "backup=s" => \$backup
+    "backup=s" => \$backup,
+    "mod=s" => \$specific_mod
 ) or exit 1;
 
 $install_dir =~ s/([^\/])$/$1\//;
@@ -53,7 +55,12 @@ $original = $files;
 undef $pure_only;
 undef $packed_only;
 $dir = $personal_dir . $coremod . '/';
-my @mods = subdirs($personal_dir);
+my @mods;
+if (defined $specific_mod) {
+    @mods = ($specific_mod);
+} else {
+    @mods = subdirs($personal_dir);
+}
 for my $mod(@mods) {
     $dir = $personal_dir . $mod . '/';
     clean();
