@@ -12,6 +12,7 @@ The script requires Archive::Zip which can be installed from cpan.
 * coremod: the game's default mod name.
 * pure-only: only check files from pure core pk3 files.
 * packed-only: only check files from core pk3 files.
+* race: also check if maps are valid race maps.
 * strip: strip wrong files from personal pk3 files.
 * rename-suffix: extra suffix for stripped pk3 files (before the dot-suffix,
   the old file will still be deleted though).

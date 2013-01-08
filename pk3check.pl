@@ -16,6 +16,7 @@ my $personal_dir = $ENV{'HOME'} . '/.warsow-1.0/';
 my $coremod = 'basewsw';
 my $pure_only;
 my $packed_only;
+my $race;
 my $strip;
 my $delete;
 my $full_delete;
@@ -29,6 +30,7 @@ GetOptions(
     "coremod=s" => \$coremod,
     "pure-only" => \$pure_only,
     "packed-only" => \$packed_only,
+    "race" => \$race,
     "strip" => \$strip,
     "delete" => \$delete,
     "full-delete" => \$full_delete,
@@ -173,6 +175,22 @@ sub check {
     my($files) = @_;
     for my $pk3(keys %{$files}) {
         FILE: for my $file(@{$files->{$pk3}}) {
+            if ($race && $file =~ /\.bsp$/) {
+                my $content = read_file($dir . $pk3, $file);
+                my $wrong = 0;
+                if ($content !~ /"classname"\s*"target_startTimer"/i) {
+                    print "$file from $dir$pk3 lacks a starttimer\n";
+                    $wrong = 1;
+                }
+                if ($content !~ /"classname"\s*"target_stopTimer"/i) {
+                    print "$file from $dir$pk3 lacks a stoptimer\n";
+                    $wrong = 1;
+                }
+                if ($wrong) {
+                    modify($dir . $pk3, $file);
+                    next FILE;
+                }
+            }
             for my $original_pk3(keys %{$original}) {
                 for my $original_file(@{$original->{$original_pk3}}) {
                     if ($file eq $original_file) {
